@@ -59,6 +59,38 @@ class Korad3005p(object):
     def setCurr(self, i = 0):
         self._cmdbn(f'ISET1:{i:.2f}')
 
+    def _slew(self, what, end, count, duration):
+        s = self.status()
+        start = s['settings'][what]
+
+        incr = (end - start) / count
+        time_step = duration / count
+        v = start
+
+        fn = None
+        if what == 'volts':
+            fn = self.setVolts
+        elif what == 'curr':
+            fn = self.setCurr
+        else:
+            raise Exception(f'No function found. What was {what}')
+
+        for i in range(count):
+            v += incr
+            v = int(v * 1000 + 0.5) / 1000
+            if fn:
+                fn(v)
+            time.sleep(time_step)
+
+        if fn:
+            fn(end)
+
+    def slewVolts(self, end_v, count = 20, duration = 5):
+        return self._slew('volts', end_v, count, duration)
+
+    def slewCurr(self, end_v, count = 20, duration = 5):
+        return self._slew('curr', end_v, count, duration)
+
     def m_store(self, n):
         if (n > 0) and (n <= 5):
             self._cmdbn(f'SAV{n}')
@@ -156,17 +188,28 @@ class KoradApp(object):
             default=1,
             help='serial interface timeout',
         )
+
         parser.add_argument(
             '--volts','-v',
             type=float,
             default=None,
             help='specify output voltage',
         )
+
         parser.add_argument(
             '--curr','-i',
             type=float,
             default=None,
             help='specify output (max) current',
+        )
+
+        parser.add_argument(
+            '--slew',
+            nargs=2,
+            type=int,
+            metavar=('COUNT','TIME'),
+            default=None,
+            help='slew V or I taking COUNT steps over TIME duration',
         )
 
         output_g = parser.add_mutually_exclusive_group()
@@ -264,10 +307,16 @@ class KoradApp(object):
 
     def go(self):
         if self.args.volts is not None:
-            self.k.setVolts(self.args.volts)
+            if self.args.slew is not None:
+                self.k.slewVolts(self.args.volts, self.args.slew[0], self.args.slew[1])
+            else:
+                self.k.setVolts(self.args.volts)
 
         if self.args.curr is not None:
-            self.k.setCurr(self.args.curr)
+            if self.args.slew is not None:
+                self.k.slewCurr(self.args.curr, self.args.slew[0], self.args.slew[1])
+            else:
+                self.k.setCurr(self.args.curr)
 
         if self.args.enable:
             self.k.enable(True)
