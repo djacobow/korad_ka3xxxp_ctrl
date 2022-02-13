@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
 
-import serial
-import re
-import json
-import time
 import argparse
+import datetime
+import json
+import re
+import serial
+import time
 
 #
 # Simple Korad PSU control library
@@ -80,6 +82,12 @@ class Korad3005p(object):
            raise Exception('Could not get PSU status')
         s_byte = s[0]
 
+        now = datetime.datetime.now()
+        timestamps = {
+            'iso': now.isoformat(),
+            'epoch': now.timestamp(),
+        }
+
         trk_bits = (s_byte >> 2) & 0x3
         status = {
             'ch0_mode': 'CV' if s_byte & 0x1 else 'CC',
@@ -100,12 +108,12 @@ class Korad3005p(object):
             'curr': i,
             'power': v * i,
         }
-
         return {
             'status': status,
             'settings': settings,
             'output': output,
             'hw': self.hw,
+            'time': timestamps,
         }
 
     def _cmdbn(self,c):

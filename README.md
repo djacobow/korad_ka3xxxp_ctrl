@@ -50,3 +50,9 @@ This disables the output and puts the time on the volts
 display and the seconds on the current display. The program
 will not exit until you CTRL-C.
 
+## Logging
+
+There is a companion program, `logcsv.py` which uses the Korad controller as a
+library and simply logs status to a csv file at the rate and duration you
+specify. Very simple, but works nicely for getting some charts.
+
