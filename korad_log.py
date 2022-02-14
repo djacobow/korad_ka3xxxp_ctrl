@@ -18,15 +18,6 @@ import korad3005p
 #
 # Free to use by any and all, with attribution.
 
-def flatten_dict(dd, separator='_', prefix=''):
-    return {
-        prefix + separator + k if prefix else k : v
-            for kk, vv in dd.items()
-                for k, v in flatten_dict(vv, separator, kk).items()
-    } if isinstance(dd, dict) else {
-        prefix : dd
-    }
-
 class KoradCsvApp(object):
     def __init__(self):
         self.args = self.getArgs()
@@ -93,13 +84,9 @@ class KoradCsvApp(object):
         return parser.parse_args()
        
     def writeLine(self, data, first=False):
-        flat = flatten_dict(data)
         if first:
-            self.keys = sorted(flat.keys())
-            self.csvw.writerow(self.keys)
-
-        vals = [ flat[k] for k in self.keys ]
-        self.csvw.writerow(vals)
+            self.csvw.writerow(korad3005p.listify_dict(data, labels_only=True))
+        self.csvw.writerow(korad3005p.listify_dict(data, labels_only=False))
 
     def go(self):
 

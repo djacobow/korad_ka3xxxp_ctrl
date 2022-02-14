@@ -28,19 +28,17 @@ psu.enable()
 ...
 ```
 
-### Command line
+### Command line Tools
 
-Or, you can use it from the command line:
+#### Control the unit directy
 
 ```sh
-./korad3005p.py --volts 3.3 --curr 0.2 --enable
+./korad_control.py --volts 3.3 --curr 0.2 --enable
 ```
+Sets the output voltage to 3.3, the maximum output current to
+200mA, and turns on the output.
 
-Use `--help` to see all the potential options.
-
-#### Fun
-
-A pointless trick mode is to turn your PSU into a clock:
+Something silly you can do it make the PSU tell the time:
 
 ```sh
 ./korad3005p.py --clock
@@ -50,9 +48,28 @@ This disables the output and puts the time on the volts
 display and the seconds on the current display. The program
 will not exit until you CTRL-C.
 
-## Logging
+#### Logging
 
-There is a companion program, `logcsv.py` which uses the Korad controller as a
-library and simply logs status to a csv file at the rate and duration you
-specify. Very simple, but works nicely for getting some charts.
+```sh
+./korad_log.py --output foo.csv
+```
+
+Samples the status of the PSU at regular interviews (that you can specify)
+and writes the results to a csv file.
+
+#### Battery Charging
+
+```sh
+./korad_charge.py --capacity 2.5
+```
+
+Set up to charge Li-Ion batteries, this will set up the PSU for a
+maximum voltage of 4.175 v (default) and a maximum charge rate of
+the specified capacity times 0.5 (default).
+
+It will charge and log the progress, and then disable the unit when
+the current drops below 0.02 "C"
+
+All these paremeters have reasonable defaults for Li-Ion, but they
+can all be overridden. See `--help`.
 
